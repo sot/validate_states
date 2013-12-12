@@ -1,0 +1,59 @@
+VERSION = 1
+
+# PSMC average power for each state (fep_count, vid_board, clocking)
+# [fep_count, vid_board, clocking, power_avg]
+psmc_power = ((0, 0, 0, 15.0),
+              (1, 0, 0, 27.0),
+              (2, 0, 0, 42.0),
+              (3, 0, 0, 55.0),
+              (4, 0, 0, 69.0),
+              (5, 0, 0, 88.6),
+              (6, 0, 0, 96.6),
+              (0, 1, 0, 40.0),
+              (1, 1, 0, 58.3),
+              (2, 1, 0, 69.0),
+              (3, 1, 0, 80.0),
+              (4, 1, 0, 92.0),
+              (5, 1, 0, 112.3),
+              (6, 1, 0, 118.0),
+              (0, 1, 1, 40.0),
+              (1, 1, 1, 57.0),
+              (2, 1, 1, 72.0),
+              (3, 1, 1, 85.4),
+              (4, 1, 1, 99.2),
+              (5, 1, 1, 113.9),
+              (6, 1, 1, 129.0),
+              (0, 0, 1, 40.0),    # These last 7 states only occur
+              (1, 0, 1, 57.0),    # for a short time due to 
+              (2, 0, 1, 72.0),    # missing stop science at end of
+              (3, 0, 1, 85.4),    # previous load.
+              (4, 0, 1, 99.2),
+              (5, 0, 1, 113.9),
+              (6, 0, 1, 129.0))
+
+
+# validation limits
+# 'msid' : (( quantile, absolute max value ))
+validation_limits = { 'DP_PITCH' : ((1, 2.5),
+                                    (99, 2.5),),
+                      'POINTING': ((1, 0.01),
+                                 (99, 0.01),),
+                      'ROLL': ((1, 0.01),
+                               (99, 0.01),),
+                      'POWER':     ((1, 10.0),
+                                    (50, 2.0),
+                                    (99, 10.0),),
+                      'TSCPOS' :   ((1, 2.0),
+                                    (99, 2.0),) }
+
+# number of tolerated differences for string / discrete msids
+# 'msid' : n differences before violation recorded
+validation_count = { 'OBSID': 5,
+                     'HETG': 5,
+                     'LETG': 5,
+                     'PCAD_MODE': 60,
+                     'DITHER': 5 }
+
+
+if __name__ == '__main__':
+    print VERSION
