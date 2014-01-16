@@ -59,8 +59,9 @@ LABELS = {'dp_pitch': 'Pitch (degrees)',
           'letg': 'LETG',
           'hetg': 'HETG',
           'power': 'ACIS power (watts)',
-          'pointing': 'NPNT Attitude Diff Angle (degrees)',
-          'roll': 'NPNT Attitude Diff Roll (degrees)'}
+          'pointing': 'Radial Offset (arcsec)',
+          'roll': 'Roll Offset (arcsec)'}
+
 
 SCALES = {'tscpos': 1000.,
           'dither': 1.}
@@ -311,10 +312,10 @@ def main(opt):
         state_vals = Ska.Numpy.add_column(state_vals,
                                           "{}_pred".format(msid), state_col)
 
-    diff_only = {'pointing': {'diff': angle_diff,
-                              'date': tlm.date[good & npnt]},
-                 'roll': {'diff': roll_diff,
-                          'date': tlm.date[good & npnt]}}
+    diff_only = {'pointing': {'diff': angle_diff * 3600,
+                              'date': tlm.date[ok]},
+                 'roll': {'diff': roll_diff * 3600,
+                          'date': tlm.date[ok]}}
 
     pred = {'dp_pitch': state_vals.pitch,
             'obsid': state_vals.obsid,
