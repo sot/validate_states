@@ -261,8 +261,8 @@ def main(opt):
 
     # Get temperature telemetry for 3 weeks prior to min(tstart, NOW)
     tlm = get_telem_values(tstart,
-                           ['sim_z', 'dp_pitch',
-                            'aodithen', 'cobsrqid',
+                           ['sim_z', 'dp_pitch', 'aoacaseq',
+                            'aodithen', 'cobsrqid', 'aofunlst',
                             'aopcadmd', '4ootgsel', '4ootgmtn',
                             'aoattqt1', 'aoattqt2',
                             'aoattqt3', 'aoattqt4',
@@ -290,14 +290,21 @@ def main(opt):
     tlm_q = normalize(raw_tlm_q)
     # only use values that aren't NaNs
     good = np.isnan(np.sum(tlm_q, axis=-1)) == False
-    # only do the pointing diffs in NPNT
-    # the maneuver interpolation is just too messy
-    npnt = state_vals['pcad_mode'] == 'NPNT'
+    # and are in NPNT
+    npnt = tlm['aopcadmd'] == 'NPNT'
+    # and are in KALM after the first 2 sample of the transition
+    not_kalm = tlm['aoacaseq'] != 'KALM'
+    kalm = (not_kalm | np.hstack([[False, False], not_kalm[:-2]])) == False
+    # and aren't during momentum unloads or in the first 2 samples after unloads
+    unload = tlm['aofunlst'] != 'NONE'
+    no_unload = (unload | np.hstack([[False, False], unload[:-2]])) == False
+    ok = good & npnt & kalm & no_unload
     state_q = normalize(raw_state_q)
-    dot_q = np.sum(tlm_q[good & npnt] * state_q[good & npnt], axis=-1)
+    dot_q = np.sum(tlm_q[ok] * state_q[ok], axis=-1)
+    dot_q[dot_q > 1] = 1
     angle_diff = np.degrees(2 * np.arccos(dot_q))
     angle_diff = np.min([angle_diff, 360 - angle_diff], axis=0)
-    roll_diff = Quat(tlm_q[good & npnt]).roll - Quat(state_q[good & npnt]).roll
+    roll_diff = Quat(tlm_q[ok]).roll - Quat(state_q[ok]).roll
     roll_diff = np.min([roll_diff, 360 - roll_diff], axis=0)
 
     for msid in MODE_SOURCE:
