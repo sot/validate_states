@@ -70,6 +70,7 @@ Red = telemetry, blue = model
 
 {% if plot.histlog %}
 .. image:: {{plot.histlog}}
+{{ plot.diff_count }} non-identical samples of {{ plot.samples }} samples.
 {% else %}
 {{ plot.diff_count }} non-identical samples of {{ plot.samples }} samples.
 No histogram provided.
