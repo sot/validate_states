@@ -1,6 +1,6 @@
-=======================
-Cmd State Verification
-=======================
+======================================
+Commanded States Database Verification
+======================================
 .. role:: red
 
 {% if proc.errors %}
