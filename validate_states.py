@@ -394,11 +394,10 @@ def main(opt):
         else:
             diff = np.sort(diff_only[msid]['diff'])
 
-        plot['samples'] = len(diff)
-        plot['diff_count'] = np.count_nonzero(diff)
-
         # if there are only a few residuals, don't bother with histograms
         if msid.upper() in validation_scale_count:
+            plot['samples'] = len(diff)
+            plot['diff_count'] = np.count_nonzero(diff)
             plot['n_changes'] = 1 + np.count_nonzero(pred[msid][1:] - pred[msid][0:-1])
             if (plot['diff_count'] <
                 (plot['n_changes'] * validation_scale_count[msid.upper()])):
