@@ -45,17 +45,30 @@ import Chandra.cmd_states as cmd_states
 import characteristics
 from characteristics import validation_limits, validation_count
 
+plt.rcParams['axes.formatter.limits'] = (-4, 4)
+plt.rcParams['font.size'] = 9
 TASK = 'validate_states'
 VERSION = 1
 TASK_DATA = os.path.join(os.environ['SKA'], 'data', TASK)
 URL = "http://cxc.harvard.edu/mta/ASPECT/" + TASK
 logger = logging.getLogger(TASK)
 
+TITLE = {'dp_pitch': 'Pitch',
+         'obsid': 'OBSID',
+         'tscpos': 'TSCPOS (SIM-Z)',
+         'pcad_mode': 'PCAD MODE',
+         'dither': 'DITHER',
+         'letg': 'LETG',
+         'hetg': 'HETG',
+         'power': 'ACIS power',
+         'pointing': 'NPNT Attitude Radial Offset',
+         'roll': 'NPNT Attitude Roll Offset'}
+
 LABELS = {'dp_pitch': 'Pitch (degrees)',
           'obsid': 'OBSID',
           'tscpos': 'SIM-Z (steps/1000)',
           'pcad_mode': 'PCAD MODE',
-          'dither': 'Dither Enabled',
+          'dither': 'Dither',
           'letg': 'LETG',
           'hetg': 'HETG',
           'power': 'ACIS power (watts)',
@@ -360,11 +373,12 @@ def main(opt):
             ticklocs, fig, ax = plot_cxctime(diff_only[msid]['date'],
                                              diff_only[msid]['diff'] / scale, fig=fig, fmt='-k')
         plot['diff_only'] = msid in diff_only
-        ax.set_title(msid.upper() + ' validation')
+        ax.set_title(TITLE[msid])
         ax.set_ylabel(LABELS[msid])
         filename = msid + '_valid.png'
         outfile = os.path.join(outdir, filename)
         logger.info('Writing plot file %s' % outfile)
+        plt.tight_layout()
         fig.savefig(outfile)
         plot['lines'] = filename
 
@@ -393,9 +407,10 @@ def main(opt):
             fig.clf()
             ax = fig.gca()
             ax.hist(diff / scale, bins=50, log=(histscale == 'log'))
-            ax.set_title(msid.upper() + ' residuals: data - model')
+            ax.set_title(msid.upper() + ' residuals: telem - cmd states', fontsize=11)
             ax.set_xlabel(LABELS[msid])
             fig.subplots_adjust(bottom=0.18)
+            plt.tight_layout()
             filename = '%s_valid_hist_%s.png' % (msid, histscale)
             outfile = os.path.join(outdir, filename)
             logger.info('Writing plot file %s' % outfile)
