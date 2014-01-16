@@ -48,11 +48,13 @@ validation_limits = { 'DP_PITCH' : ((1, 2.5),
 
 # number of tolerated differences for string / discrete msids
 # 'msid' : n differences before violation recorded
-validation_count = { 'OBSID': 5,
-                     'HETG': 5,
-                     'LETG': 5,
-                     'PCAD_MODE': 60,
-                     'DITHER': 5 }
+# this is scaled by the number of toggles or expected
+# changes in the msid
+validation_scale_count = { 'OBSID': 1,
+                           'HETG': 1,
+                           'LETG': 1,
+                           'PCAD_MODE': 1,
+                           'DITHER': 1}
 
 
 if __name__ == '__main__':

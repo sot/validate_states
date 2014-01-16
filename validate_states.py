@@ -43,7 +43,7 @@ from mica.quaternion import Quat, normalize
 
 import Chandra.cmd_states as cmd_states
 import characteristics
-from characteristics import validation_limits, validation_count
+from characteristics import validation_limits, validation_scale_count
 
 plt.rcParams['axes.formatter.limits'] = (-4, 4)
 plt.rcParams['font.size'] = 9
@@ -349,6 +349,7 @@ def main(opt):
             'roll': 1}
 
     plots_validation = []
+    valid_viols = []
     logger.info('Making validation plots and quantile table')
     quantiles = (1, 5, 16, 50, 84, 95, 99)
     # store lines of quantile table in a string and write out later
@@ -356,7 +357,6 @@ def main(opt):
     quant_head = ",".join(['MSID'] + ["quant%d" % x for x in quantiles])
     quant_table += quant_head + "\n"
     for fig_id, msid in enumerate(sorted(pred)):
-    #for fig_id, msid in enumerate(['obsid']):
         plot = dict(msid=msid.upper())
         fig = plt.figure(10 + fig_id, figsize=(7, 3.5))
         fig.clf()
@@ -389,25 +389,41 @@ def main(opt):
         fig.savefig(outfile)
         plot['lines'] = filename
 
-        # Make quantiles
         if msid not in diff_only:
             diff = np.sort(tlm[msid] - pred[msid])
         else:
             diff = np.sort(diff_only[msid]['diff'])
-        quant_line = "%s" % msid
-        for quant in quantiles:
-            quant_val = diff[(len(diff) * quant) // 100]
-            plot['quant%02d' % quant] = FMTS[msid] % quant_val
-            quant_line += (',' + FMTS[msid] % quant_val)
-        quant_table += quant_line + "\n"
 
         plot['samples'] = len(diff)
-        plot['diff_count'] = len(np.flatnonzero(diff))
+        plot['diff_count'] = np.count_nonzero(diff)
+
         # if there are only a few residuals, don't bother with histograms
-        if ((msid.upper() in validation_count)
-                and (plot['diff_count'] < validation_count[msid.upper()])):
-            plots_validation.append(plot)
-            continue
+        if msid.upper() in validation_scale_count:
+            plot['n_changes'] = 1 + np.count_nonzero(pred[msid][1:] - pred[msid][0:-1])
+            if (plot['diff_count'] <
+                (plot['n_changes'] * validation_scale_count[msid.upper()])):
+                plots_validation.append(plot)
+                continue
+            # if the msid exceeds the diff count, add a validation violation
+            else:
+                viol = {'msid': "{}_diff_count".format(msid),
+                        'value': plot['diff_count'],
+                        'limit': plot['n_changes'] * validation_scale_count[msid.upper()],
+                        'quant': None,
+                        }
+                valid_viols.append(viol)
+                logger.info('WARNING: %s %d discrete diffs exceed limit of %d' %
+                            (msid, plot['diff_count'],
+                             plot['n_changes'] * validation_scale_count[msid.upper()]))
+
+        # Make quantiles
+        if (msid != 'obsid'):
+            quant_line = "%s" % msid
+            for quant in quantiles:
+                quant_val = diff[(len(diff) * quant) // 100]
+                plot['quant%02d' % quant] = FMTS[msid] % quant_val
+                quant_line += (',' + FMTS[msid] % quant_val)
+            quant_table += quant_line + "\n"
 
         for histscale in ('lin', 'log'):
             fig = plt.figure(20 + fig_id, figsize=(4, 3))
@@ -442,7 +458,7 @@ def main(opt):
         pickle.dump({'pred': pred, 'tlm': tlm}, f, protocol=-1)
         f.close()
 
-    valid_viols = make_validation_viols(plots_validation)
+    valid_viols.extend(make_validation_viols(plots_validation))
     if len(valid_viols) > 0:
         # generate daily plot url if outdir in expected year/day format
         daymatch = re.match('.*(\d{4})/(\d{3})', opt.outdir)
