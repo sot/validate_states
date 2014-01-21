@@ -1,4 +1,4 @@
-VERSION = 2
+VERSION = 3
 
 # PSMC average power for each state (fep_count, vid_board, clocking)
 # [fep_count, vid_board, clocking, power_avg]
@@ -34,8 +34,8 @@ psmc_power = ((0, 0, 0, 15.0),
 
 # validation limits
 # 'msid' : (( quantile, absolute max value ))
-validation_limits = { 'DP_PITCH' : ((1, 2.5),
-                                    (99, 2.5),),
+validation_limits = { 'DP_PITCH' : ((1, 3.0),
+                                    (99, 3.0),),
                       'POINTING': ((1, 30),
                                  (99, 30),),
                       'ROLL': ((1, 30),
