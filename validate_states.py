@@ -61,8 +61,8 @@ TITLE = {'dp_pitch': 'Pitch',
          'letg': 'LETG',
          'hetg': 'HETG',
          'power': 'ACIS power',
-         'pointing': 'NPNT Attitude Radial Offset',
-         'roll': 'NPNT Attitude Roll Offset'}
+         'pointing': 'Commanded ATT Radial Offset',
+         'roll': 'Commanded ATT Roll Offset'}
 
 LABELS = {'dp_pitch': 'Pitch (degrees)',
           'obsid': 'OBSID',
@@ -264,8 +264,7 @@ def main(opt):
                            ['sim_z', 'dp_pitch', 'aoacaseq',
                             'aodithen', 'cobsrqid', 'aofunlst',
                             'aopcadmd', '4ootgsel', '4ootgmtn',
-                            'aoattqt1', 'aoattqt2',
-                            'aoattqt3', 'aoattqt4',
+                            'aocmdqt1', 'aocmdqt2', 'aocmdqt3',
                             '1de28avo', '1deicacu',
                             '1dp28avo', '1dpicacu',
                             '1dp28bvo', '1dpicbcu'],
@@ -282,9 +281,17 @@ def main(opt):
     # Interpolate states onto the tlm.date grid
     state_vals = cmd_states.interpolate_states(states, tlm.date)
 
-    # Calculate angle/roll differences in cmd vs tlm quaternions
-    raw_tlm_q = np.vstack([tlm['aoattqt' + str(n)] for n
-                           in [1, 2, 3, 4]]).transpose()
+    # Calculate the 4th term of the commanded quaternions
+    cmd_q4 = np.sqrt(np.abs(1.0
+                            - tlm['aocmdqt1']**2
+                            - tlm['aocmdqt2']**2
+                            - tlm['aocmdqt3']**2))
+    raw_tlm_q = np.vstack([tlm['aocmdqt1'],
+                           tlm['aocmdqt2'],
+                           tlm['aocmdqt3'],
+                           cmd_q4]).transpose()
+
+    # Calculate angle/roll differences in state cmd vs tlm cmd quaternions
     raw_state_q = np.vstack([state_vals[n] for n
                              in ['q1', 'q2', 'q3', 'q4']]).transpose()
     tlm_q = normalize(raw_tlm_q)
