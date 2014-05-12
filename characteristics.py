@@ -1,4 +1,4 @@
-VERSION = 3
+VERSION = 4
 
 # PSMC average power for each state (fep_count, vid_board, clocking)
 # [fep_count, vid_board, clocking, power_avg]
