@@ -1,4 +1,4 @@
-VERSION = 4
+VERSION = 5
 
 # PSMC average power for each state (fep_count, vid_board, clocking)
 # [fep_count, vid_board, clocking, power_avg]
@@ -41,7 +41,7 @@ validation_limits = { 'DP_PITCH' : ((1, 3.0),
                       'ROLL': ((1, .05),
                                (99, .05),),
                       'POWER':     ((1, 14.0),
-                                    (50, 2.0),
+                                    (50, 3.0),
                                     (99, 14.0),),
                       'TSCPOS' :   ((1, 2.0),
                                     (99, 2.0),) }
