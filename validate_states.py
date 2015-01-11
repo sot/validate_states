@@ -33,6 +33,7 @@ import matplotlib.pyplot as plt
 
 import Ska.Matplotlib
 from Ska.Matplotlib import plot_cxctime
+from Ska.Matplotlib import cxctime2plotdate as cxc2pd
 import Ska.DBI
 import Ska.Shell
 #import Ska.Table
@@ -195,6 +196,15 @@ def get_telem_values(tstart, msids, days=14, dt=32.8, name_map={}):
     return out
 
 
+def get_bad_mask(tlm):
+    mask = np.zeros(len(tlm), dtype='bool')
+    for interval in characteristics.bad_times:
+        bad = ((tlm['date'] >= DateTime(interval['start']).secs)
+               & (tlm['date'] < DateTime(interval['stop']).secs))
+        mask[bad] = True
+    return mask
+
+
 def get_power(states):
     """
     Determine the power value in each state by finding the entry in calibration
@@ -278,8 +288,11 @@ def main(opt):
     write_states(opt, states)
     tlm = Ska.Numpy.add_column(tlm, 'power', smoothed_power(tlm))
 
+    # Get bad time intervals
+    bad_time_mask = get_bad_mask(tlm)
+
     # Interpolate states onto the tlm.date grid
-    state_vals = cmd_states.interpolate_states(states, tlm.date)
+    state_vals = cmd_states.interpolate_states(states, tlm['date'])
 
     # Calculate the 4th term of the commanded quaternions
     cmd_q4 = np.sqrt(np.abs(1.0
@@ -305,7 +318,7 @@ def main(opt):
     # and aren't during momentum unloads or in the first 2 samples after unloads
     unload = tlm['aofunlst'] != 'NONE'
     no_unload = (unload | np.hstack([[False, False], unload[:-2]])) == False
-    ok = good & npnt & kalm & no_unload
+    ok = good & npnt & kalm & no_unload & ~bad_time_mask
     state_q = normalize(raw_state_q)
     dot_q = np.sum(tlm_q[ok] * state_q[ok], axis=-1)
     dot_q[dot_q > 1] = 1
@@ -339,10 +352,11 @@ def main(opt):
         state_vals = Ska.Numpy.add_column(state_vals,
                                           "{}_pred".format(msid), state_col)
 
+
     diff_only = {'pointing': {'diff': angle_diff * 3600,
-                              'date': tlm.date[ok]},
+                              'date': tlm['date'][ok]},
                  'roll': {'diff': roll_diff * 3600,
-                          'date': tlm.date[ok]}}
+                          'date': tlm['date'][ok]}}
 
     pred = {'dp_pitch': state_vals.pitch,
             'obsid': state_vals.obsid,
@@ -368,20 +382,21 @@ def main(opt):
         fig = plt.figure(10 + fig_id, figsize=(7, 3.5))
         fig.clf()
         scale = SCALES.get(msid, 1.0)
+        ax = None
         if msid not in diff_only:
             if msid in MODE_MSIDS:
                 state_msid = np.zeros(len(tlm))
                 for mode, idx in zip(MODE_MSIDS[msid], count()):
                     state_msid[state_vals[msid] == mode] = idx
-                ticklocs, fig, ax = plot_cxctime(tlm.date,
+                ticklocs, fig, ax = plot_cxctime(tlm['date'],
                                                  tlm[msid], fig=fig, fmt='-r')
-                ticklocs, fig, ax = plot_cxctime(tlm.date,
+                ticklocs, fig, ax = plot_cxctime(tlm['date'],
                                                  state_msid, fig=fig, fmt='-b')
                 plt.yticks(range(len(MODE_MSIDS[msid])), MODE_MSIDS[msid])
             else:
-                ticklocs, fig, ax = plot_cxctime(tlm.date,
+                ticklocs, fig, ax = plot_cxctime(tlm['date'],
                                                  tlm[msid] / scale, fig=fig, fmt='-r')
-                ticklocs, fig, ax = plot_cxctime(tlm.date,
+                ticklocs, fig, ax = plot_cxctime(tlm['date'],
                                                  pred[msid] / scale, fig=fig, fmt='-b')
         else:
             ticklocs, fig, ax = plot_cxctime(diff_only[msid]['date'],
@@ -389,6 +404,21 @@ def main(opt):
         plot['diff_only'] = msid in diff_only
         ax.set_title(TITLE[msid])
         ax.set_ylabel(LABELS[msid])
+        xlims = ax.get_xlim()
+        ylims = ax.get_ylim()
+        for bad in characteristics.bad_times:
+            bad_start = cxc2pd([DateTime(bad['start']).secs])[0]
+            bad_stop = cxc2pd([DateTime(bad['stop']).secs])[0]
+            if not ((bad_stop >= xlims[0]) & (bad_start <= xlims[1])):
+                continue
+            rect = matplotlib.patches.Rectangle((bad_start, ylims[0]),
+                                                bad_stop - bad_start,
+                                                ylims[1] - ylims[0],
+                                                alpha=.2,
+                                                facecolor='black',
+                                                edgecolor='none')
+            ax.add_patch(rect)
+
         filename = msid + '_valid.png'
         outfile = os.path.join(outdir, filename)
         logger.info('Writing plot file %s' % outfile)
@@ -397,7 +427,8 @@ def main(opt):
         plot['lines'] = filename
 
         if msid not in diff_only:
-            diff = np.sort(tlm[msid] - pred[msid])
+            diff = tlm[msid][~bad_time_mask] - pred[msid][~bad_time_mask]
+            diff = np.sort(diff)
         else:
             diff = np.sort(diff_only[msid]['diff'])
 
