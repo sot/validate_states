@@ -56,6 +56,8 @@ validation_scale_count = { 'OBSID': 1,
                            'PCAD_MODE': 1,
                            'DITHER': 1}
 
+bad_times = [{'start': '2015:006:08:22:59.000',
+              'stop': '2015:009:00:00:00.000'}]
 
 if __name__ == '__main__':
     print VERSION
