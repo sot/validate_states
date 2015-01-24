@@ -4,7 +4,7 @@ TASK = validate_states
 # Versions
 VER_TOOL = `python validate_states.py --version`
 VER_CAL = `python -m characteristics`
-VER_MINOR = 0
+VER_MINOR = 1
 
 # Uncomment the correct choice indicating either SKA or TST flight environment
 FLIGHT_ENV = SKA
