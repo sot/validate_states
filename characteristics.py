@@ -59,7 +59,9 @@ validation_scale_count = { 'OBSID': 1,
                            'DITHER': 1}
 
 bad_times = [{'start': '2015:006:08:22:59.000',
-              'stop': '2015:009:00:00:00.000'}]
+              'stop': '2015:009:00:00:00.000'},
+             {'start': '2015:012:00:30:00.000',
+              'stop': '2015:013:05:26:54.011'}]
 
 if __name__ == '__main__':
     print VERSION
