@@ -11,7 +11,7 @@ This code calls validate_states for daily trending.
 
 import os
 import re
-
+from Ska.File import chdir
 from Chandra.Time import DateTime
 
 TASK = 'validate_states'
@@ -45,6 +45,11 @@ def main(opt):
     day_dir = os.path.join(opt.data_dir, year, day)
     if not os.path.exists(day_dir):
         os.makedirs(day_dir)
+    with chdir(opt.data_dir):
+        local_day_dir = os.path.join(year, day)
+        if os.path.exists("current"):
+            os.unlink("current")
+        os.system("ln -s {} current".format(local_day_dir))
     print CHECK_EXE
     os.system("%s --run_start_time %s --days %s --outdir %s"
               % (CHECK_EXE, run_time_date, opt.telem_days, day_dir))
