@@ -1,4 +1,4 @@
-VERSION = 7
+VERSION = 8
 
 # PSMC average power for each state (fep_count, vid_board, clocking)
 # [fep_count, vid_board, clocking, power_avg]
@@ -61,7 +61,9 @@ validation_scale_count = { 'OBSID': 1,
 bad_times = [{'start': '2015:006:08:22:59.000',
               'stop': '2015:009:00:00:00.000'},
              {'start': '2015:012:00:30:00.000',
-              'stop': '2015:013:05:26:54.011'}]
+              'stop': '2015:013:05:26:54.011'},
+             {'start': '2015:264:00:00:00.000',
+              'stop': '2015:267:00:00:00.000'}]
 
 if __name__ == '__main__':
     print VERSION
