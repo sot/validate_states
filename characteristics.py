@@ -52,11 +52,11 @@ validation_limits = { 'DP_PITCH' : ((1, 4.0),
 # 'msid' : n differences before violation recorded
 # this is scaled by the number of toggles or expected
 # changes in the msid
-validation_scale_count = { 'OBSID': 1,
-                           'HETG': 1,
-                           'LETG': 1,
-                           'PCAD_MODE': 1,
-                           'DITHER': 1}
+validation_scale_count = { 'OBSID': 2,
+                           'HETG': 2,
+                           'LETG': 2,
+                           'PCAD_MODE': 2,
+                           'DITHER': 2}
 
 bad_times = [{'start': '2015:006:08:22:59.000',
               'stop': '2015:009:00:00:00.000'},
