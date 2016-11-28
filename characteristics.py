@@ -34,8 +34,8 @@ psmc_power = ((0, 0, 0, 15.0),
 
 # validation limits
 # 'msid' : (( quantile, absolute max value ))
-validation_limits = { 'DP_PITCH' : ((1, 4.0),
-                                    (99, 4.0),
+validation_limits = { 'DP_PITCH' : ((1, 4.5),
+                                    (99, 4.5),
                                     (5, 1.5),
                                     (95, 1.5),),
                       'POINTING': ((1, .05),
