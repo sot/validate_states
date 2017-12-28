@@ -123,6 +123,14 @@ def get_options():
                       type='int',
                       default=1,
                       help="Verbosity (0=quiet, 1=normal, 2=debug)")
+    parser.add_option('--dbi',
+                      default='sybase')
+    parser.add_option('--server',
+                      default='sybase')
+    parser.add_option('--user',
+                      default='aca_read')
+    parser.add_option('--database',
+                      default='aca')
     parser.add_option("--version",
                       action='store_true',
                       help="Print version")
@@ -585,8 +593,8 @@ def get_states(datestart, datestop):
     :returns: np recarry of states
     """
     logger.info('Connecting to database to get cmd_states')
-    db = Ska.DBI.DBI(dbi='sybase', server='sybase',
-                     user='aca_read', database='aca')
+    db = Ska.DBI.DBI(dbi=opt.dbi, server=opt.server,
+                     user=opt.user, database=opt.database)
 
     datestart = DateTime(datestart).date
     datestop = DateTime(datestop).date
