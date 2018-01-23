@@ -53,6 +53,11 @@ def main(opt):
     print CHECK_EXE
     os.system("%s --run_start_time %s --days %s --outdir %s"
               % (CHECK_EXE, run_time_date, opt.telem_days, day_dir))
+    sqlite_day_dir = os.path.join(day_dir, 'sqlite')
+    sqlite_db = os.path.join(os.environ['SKA'], 'data', 'cmd_states', 'cmd_states.db3')
+    os.system(
+        "%s --run_start_time %s --days %s --outdir %s --dbi sqlite --server %s"
+        % (CHECK_EXE, run_time_date, opt.telem_days, sqlite_day_dir, sqlite_db))
 
 
 if __name__ == '__main__':
