@@ -34,7 +34,6 @@ import matplotlib.pyplot as plt
 import Ska.Matplotlib
 from Ska.Matplotlib import plot_cxctime
 from Ska.Matplotlib import cxctime2plotdate as cxc2pd
-import Ska.DBI
 import Ska.Shell
 #import Ska.Table
 import Ska.Numpy
@@ -124,8 +123,11 @@ def get_options():
                       default=1,
                       help="Verbosity (0=quiet, 1=normal, 2=debug)")
     parser.add_option('--dbi',
+                      help='states database backend type (sybase|sqlite|kadi)',
                       default='sybase')
     parser.add_option('--server',
+                      help='states database server (sybase|<sqlite file> '
+                           'ignored for dbi=kadi)',
                       default='sybase')
     parser.add_option('--user',
                       default='aca_read')
@@ -584,14 +586,8 @@ def write_index_rst(opt, proc, plots_validation, valid_viols=None):
     open(outfile, 'w').write(template.render(django_context))
 
 
-def get_states(datestart, datestop):
-    """Get states exactly covering date range
-
-    :param datestart: start date
-    :param datestop: stop date
-    :param db: database handle
-    :returns: np recarry of states
-    """
+def get_states_dbi(datestart, datestop):
+    import Ska.DBI
     logger.info('Connecting to database to get cmd_states')
     db = Ska.DBI.DBI(dbi=opt.dbi, server=opt.server,
                      user=opt.user, database=opt.database)
@@ -599,7 +595,7 @@ def get_states(datestart, datestop):
     datestart = DateTime(datestart).date
     datestop = DateTime(datestop).date
     logger.info('Getting commanded states between %s - %s' %
-                 (datestart, datestop))
+                (datestart, datestop))
 
     # Get all states that intersect specified date range
     cmd = """SELECT * FROM cmd_states
@@ -609,6 +605,38 @@ def get_states(datestart, datestop):
     states = db.fetchall(cmd)
     db.conn.close()
     logger.info('Found %d commanded states' % len(states))
+    return states
+
+
+def get_states_kadi(datestart, datestop):
+    # Local import for speed and for namespace clarity
+    from kadi.commands.states import get_states
+
+    logger.info('Using kadi.commands.states to get cmd_states')
+    logger.info('Getting commanded states between %s - %s' %
+                (datestart, datestop))
+
+    states = get_states(datestart, datestop)
+    states['tstart'] = DateTime(states['datestart']).secs
+    states['tstop'] = DateTime(states['datestop']).secs
+
+    # Convert to recarray and return
+    sa = states.as_array()
+    rsa = np.recarray(sa.shape, dtype=sa.dtype, names=sa.dtype.names, buf=sa.data)
+
+    return rsa
+
+
+def get_states(datestart, datestop):
+    """Get states exactly covering date range
+
+    :param datestart: start date
+    :param datestop: stop date
+    :param db: database handle
+    :returns: np recarry of states
+    """
+    get_states_func = get_states_kadi if opt.dbi == 'kadi' else get_states_dbi
+    states = get_states_func(datestart, datestop)
 
     # Add power columns to states and tlm
     states = Ska.Numpy.add_column(states, 'power', get_power(states))
