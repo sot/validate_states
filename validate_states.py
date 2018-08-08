@@ -48,7 +48,7 @@ from characteristics import validation_limits, validation_scale_count
 plt.rcParams['axes.formatter.limits'] = (-4, 4)
 plt.rcParams['font.size'] = 9
 TASK = 'validate_states'
-VERSION = 3
+VERSION = 4
 TASK_DATA = os.path.join(os.environ['SKA'], 'data', TASK)
 URL = "http://cxc.harvard.edu/mta/ASPECT/" + TASK
 logger = logging.getLogger(TASK)
