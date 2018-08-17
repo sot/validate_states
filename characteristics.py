@@ -2,7 +2,7 @@ VERSION = 14
 
 # PSMC average power for each state (fep_count, vid_board, clocking)
 # [fep_count, vid_board, clocking, power_avg]
-psmc_power = ((0, 0, 0, 15.0),
+psmc_power = ((0, 0, 0, 43.0),
               (1, 0, 0, 27.0),
               (2, 0, 0, 42.0),
               (3, 0, 0, 68.0),
