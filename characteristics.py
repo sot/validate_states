@@ -1,4 +1,4 @@
-VERSION = 15
+VERSION = 16
 
 # PSMC average power for each state (fep_count, vid_board, clocking)
 # [fep_count, vid_board, clocking, power_avg]
@@ -43,9 +43,9 @@ validation_limits = { 'DP_PITCH' : ((1, 5.0),
                                  (99, .05),),
                       'ROLL': ((1, .05),
                                (99, .05),),
-                      'POWER':     ((1, 14.0),
+                      'POWER':     ((1, 18.0),
                                     (50, 3.0),
-                                    (99, 14.0),),
+                                    (99, 18.0),),
                       'TSCPOS' :   ((1, 2.0),
                                     (99, 2.0),) }
 
@@ -57,7 +57,7 @@ validation_scale_count = { 'OBSID': 2,
                            'HETG': 2,
                            'LETG': 2,
                            'PCAD_MODE': 2,
-                           'DITHER': 2}
+                           'DITHER': 3}
 
 bad_times = [{'start': '2015:006:08:22:59.000',
               'stop': '2015:009:00:00:00.000'},
@@ -80,7 +80,11 @@ bad_times = [{'start': '2015:006:08:22:59.000',
              {'start': '2017:090:18:00:00.000',
               'stop': '2017:092:04:00:00.000'},
              {'start': '2018:079:13:15:00.000',
-              'stop': '2018:079:13:30:00.000'}
+              'stop': '2018:079:13:30:00.000'},
+             {'start': '2018:283:13:54:00.000',
+              'stop': '2018:286:12:30:00.000'},
+             {'start': '2018:292:23:55:00.000',
+              'stop': '2018:293:07:10:00.000'},
              ]
 
 
