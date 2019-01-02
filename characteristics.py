@@ -35,10 +35,10 @@ psmc_power = ((0, 0, 0, 43.0),
 # validation limits
 # 'msid' : (( quantile, absolute max value ))
 # Note that the quantile needs to be in the set (1, 5, 16, 50, 84, 95, 99)
-validation_limits = { 'DP_PITCH' : ((1, 5.0),
-                                    (99, 5.0),
-                                    (5, 1.5),
-                                    (95, 1.5),),
+validation_limits = { 'DP_PITCH' : ((1, 7.0),
+                                    (99, 7.0),
+                                    (5, 0.5),
+                                    (95, 0.5),),
                       'POINTING': ((1, .05),
                                  (99, .05),),
                       'ROLL': ((1, .05),
