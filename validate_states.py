@@ -307,15 +307,19 @@ def main(opt):
 
     # "Forgive" dither intervals with dark current replicas
     # This will also exclude dither disables that are in cmd states for standard dark cals
-    # Find mock dither states from tlm
     dark_mask = np.zeros(len(tlm), dtype='bool')
     dark_times = []
-    for tlm_state in logical_intervals(tlm['date'], tlm['aodithen'] == 'DISA'):
-        state_times = ((tlm['date'] < tlm_state['tstop']) & (tlm['date'] > tlm_state['tstart']))
-        # if any have aca calibration flag
-        if np.any(tlm['cacalsta'][state_times] != 'OFF '):
-            dark_mask[state_times] = True
-            dark_times.append({'start': tlm_state['datestart'], 'stop': tlm_state['datestop']})
+    # Find dither "disable" states from tlm
+    dith_disa_states = logical_intervals(tlm['date'], tlm['aodithen'] == 'DISA')
+    for state in dith_disa_states:
+        # Index back into telemetry for each of these constant dither disable states
+        idx0 = np.searchsorted(tlm['date'], state['tstart'], side='left')
+        idx1 = np.searchsorted(tlm['date'], state['tstop'], side='right')
+        # If any samples have aca calibration flag, mark interval for exclusion.
+        if np.any(tlm['cacalsta'][idx0:idx1] != 'OFF '):
+            dark_mask[idx0:idx1] = True
+            dark_times.append({'start': state['datestart'],
+                               'stop': state['datestop']})
 
     # Calculate the 4th term of the commanded quaternions
     cmd_q4 = np.sqrt(np.abs(1.0
