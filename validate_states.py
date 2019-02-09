@@ -429,9 +429,16 @@ def main(opt):
         ax.set_ylabel(LABELS[msid])
         xlims = ax.get_xlim()
         ylims = ax.get_ylim()
+
         bad_times = list(characteristics.bad_times)
+
+        # Add the time intervals of dark current calibrations that have been excluded from
+        # the diffs to the "bad_times" for validation so they also can be marked with grey
+        # rectangles in the plot.  This is only really visible with interactive/zoomed plot.
         if msid in ['dither', 'pcad_mode']:
             bad_times.extend(dark_times)
+
+        # Add "background" grey rectangles for excluded time regions to vs-time plot
         for bad in bad_times:
             bad_start = cxc2pd([DateTime(bad['start']).secs])[0]
             bad_stop = cxc2pd([DateTime(bad['stop']).secs])[0]
