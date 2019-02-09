@@ -454,14 +454,16 @@ def main(opt):
         plot['lines'] = filename
 
         if msid not in diff_only:
+            ok = ~bad_time_mask
             if msid in ['dither', 'pcad_mode']:
-                # Also exclude dark cals from diffs
-                diff = (tlm[msid][~bad_time_mask & ~dark_mask] - pred[msid][~bad_time_mask & ~dark_mask])
-            else:
-                diff = tlm[msid][~bad_time_mask] - pred[msid][~bad_time_mask]
-            diff = np.sort(diff)
+                # For these two validations also ignore intervals during a dark current calibration
+                ok &= ~dark_mask
+            diff = tlm[msid][ok] - pred[msid][ok]
         else:
-            diff = np.sort(diff_only[msid]['diff'])
+            diff = diff_only[msid]['diff']
+
+        # Sort the diffs in-place because we're just using them in aggregate
+        diff = np.sort(diff)
 
         # if there are only a few residuals, don't bother with histograms
         if msid.upper() in validation_scale_count:
