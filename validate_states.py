@@ -460,7 +460,7 @@ def main(opt):
         outfile = os.path.join(outdir, filename)
         logger.info('Writing plot file %s' % outfile)
         plt.tight_layout()
-        plt.margins(.05)
+        plt.margins(0.05)
         fig.savefig(outfile)
         plot['lines'] = filename
 
