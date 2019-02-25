@@ -38,6 +38,7 @@ import Ska.Shell
 #import Ska.Table
 import Ska.Numpy
 import Ska.engarchive.fetch_sci as fetch
+from Ska.engarchive.utils import logical_intervals
 from Chandra.Time import DateTime
 from mica.quaternion import Quat, normalize
 
@@ -282,7 +283,7 @@ def main(opt):
     # Get temperature telemetry for 3 weeks prior to min(tstart, NOW)
     tlm = get_telem_values(tstart,
                            ['sim_z', 'dp_pitch', 'aoacaseq',
-                            'aodithen', 'cobsrqid', 'aofunlst',
+                            'aodithen', 'cacalsta', 'cobsrqid', 'aofunlst',
                             'aopcadmd', '4ootgsel', '4ootgmtn',
                             'aocmdqt1', 'aocmdqt2', 'aocmdqt3',
                             '1de28avo', '1deicacu',
@@ -303,6 +304,22 @@ def main(opt):
 
     # Interpolate states onto the tlm.date grid
     state_vals = cmd_states.interpolate_states(states, tlm['date'])
+
+    # "Forgive" dither intervals with dark current replicas
+    # This will also exclude dither disables that are in cmd states for standard dark cals
+    dark_mask = np.zeros(len(tlm), dtype='bool')
+    dark_times = []
+    # Find dither "disable" states from tlm
+    dith_disa_states = logical_intervals(tlm['date'], tlm['aodithen'] == 'DISA')
+    for state in dith_disa_states:
+        # Index back into telemetry for each of these constant dither disable states
+        idx0 = np.searchsorted(tlm['date'], state['tstart'], side='left')
+        idx1 = np.searchsorted(tlm['date'], state['tstop'], side='right')
+        # If any samples have aca calibration flag, mark interval for exclusion.
+        if np.any(tlm['cacalsta'][idx0:idx1] != 'OFF '):
+            dark_mask[idx0:idx1] = True
+            dark_times.append({'start': state['datestart'],
+                               'stop': state['datestop']})
 
     # Calculate the 4th term of the commanded quaternions
     cmd_q4 = np.sqrt(np.abs(1.0
@@ -416,7 +433,17 @@ def main(opt):
         ax.set_ylabel(LABELS[msid])
         xlims = ax.get_xlim()
         ylims = ax.get_ylim()
-        for bad in characteristics.bad_times:
+
+        bad_times = list(characteristics.bad_times)
+
+        # Add the time intervals of dark current calibrations that have been excluded from
+        # the diffs to the "bad_times" for validation so they also can be marked with grey
+        # rectangles in the plot.  This is only really visible with interactive/zoomed plot.
+        if msid in ['dither', 'pcad_mode']:
+            bad_times.extend(dark_times)
+
+        # Add "background" grey rectangles for excluded time regions to vs-time plot
+        for bad in bad_times:
             bad_start = cxc2pd([DateTime(bad['start']).secs])[0]
             bad_stop = cxc2pd([DateTime(bad['stop']).secs])[0]
             if not ((bad_stop >= xlims[0]) & (bad_start <= xlims[1])):
@@ -433,14 +460,21 @@ def main(opt):
         outfile = os.path.join(outdir, filename)
         logger.info('Writing plot file %s' % outfile)
         plt.tight_layout()
+        plt.margins(0.05)
         fig.savefig(outfile)
         plot['lines'] = filename
 
         if msid not in diff_only:
-            diff = tlm[msid][~bad_time_mask] - pred[msid][~bad_time_mask]
-            diff = np.sort(diff)
+            ok = ~bad_time_mask
+            if msid in ['dither', 'pcad_mode']:
+                # For these two validations also ignore intervals during a dark current calibration
+                ok &= ~dark_mask
+            diff = tlm[msid][ok] - pred[msid][ok]
         else:
-            diff = np.sort(diff_only[msid]['diff'])
+            diff = diff_only[msid]['diff']
+
+        # Sort the diffs in-place because we're just using them in aggregate
+        diff = np.sort(diff)
 
         # if there are only a few residuals, don't bother with histograms
         if msid.upper() in validation_scale_count:
