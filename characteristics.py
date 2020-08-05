@@ -1,4 +1,4 @@
-VERSION = 20
+VERSION = 21
 
 # PSMC average power for each state (fep_count, vid_board, clocking)
 # [fep_count, vid_board, clocking, power_avg]
@@ -91,6 +91,8 @@ bad_times = [{'start': '2015:006:08:22:59.000',
               'stop': '2019:249:03:00:00.000'},
              {'start': '2020:145:14:17:00.000',
               'stop': '2020:147:11:30:00.000'},
+             {'start': '2020:213:02:00:00.000',
+              'stop': '2020:213:11:00:00.000'},
              ]
 
 
