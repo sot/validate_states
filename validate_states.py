@@ -125,7 +125,7 @@ def get_options():
                       help="Verbosity (0=quiet, 1=normal, 2=debug)")
     parser.add_option('--dbi',
                       help='states database backend type (sybase|sqlite|kadi)',
-                      default='sybase')
+                      default='kadi')
     parser.add_option('--server',
                       help='states database server (sybase|<sqlite file> '
                            'ignored for dbi=kadi)',
